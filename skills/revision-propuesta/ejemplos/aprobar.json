@@ -1,0 +1,8 @@
+{
+  "propuesta": { "version": 1, "etiqueta": "RESULTADO SIMULADO", "total": 31140.90, "vigencia_dias": 7,
+    "resumen": "RESULTADO SIMULADO de PapelSur (empresa ficticia): 40 cajas de hojas bond carta y 30 paquetes de bolígrafos azules. Total con IVA: 31,140.90 MXN.",
+    "supuestos": [ "Vigencia de 7 días naturales", "Disponibilidad sujeta a existencias del catálogo" ],
+    "fuentes": [ "catalogo-2026-11-01", "politica_comercial v1.0" ] },
+  "fallas_automaticas": [],
+  "dictamen_esperado": { "dictamen": "aprobado", "correcciones": [] }
+}

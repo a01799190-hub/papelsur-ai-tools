@@ -1,0 +1,11 @@
+{
+  "entrada_telegram": "/nuevo 40 cajas de hojas carta y 30 paquetes de plumas azules",
+  "lineas_verificadas_A2": [ { "sku": "PS-HOJ-CAR", "cantidad": 40 }, { "sku": "PS-PLU-AZU", "cantidad": 30 } ],
+  "calculo_esperado": { "subtotal": 29180.00, "descuento_pct": 0.08, "descuento": 2334.40, "envio": 0, "iva": 4295.30, "total": 31140.90 },
+  "salida_esperada_A3": {
+    "resumen": "RESULTADO SIMULADO de PapelSur (empresa ficticia): 40 cajas de hojas bond carta y 30 paquetes de bolígrafos azules. Total con IVA: 31,140.90 MXN.",
+    "supuestos": [ "Vigencia de 7 días naturales", "Disponibilidad sujeta a existencias del catálogo" ],
+    "condiciones": [ "Envío gratis por subtotal mayor a 3,000 MXN", "Fecha de entrega a confirmar" ]
+  },
+  "resultado_esperado": "A4 aprueba; estado pendiente_aprobacion"
+}

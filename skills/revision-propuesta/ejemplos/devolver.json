@@ -1,0 +1,8 @@
+{
+  "propuesta": { "version": 1, "etiqueta": "RESULTADO SIMULADO", "total": 31140.90, "vigencia_dias": 7,
+    "resumen": "Cotización lista. Podemos ofrecer pago a 60 días y entrega garantizada mañana.",
+    "supuestos": [], "fuentes": [ "catalogo-2026-11-01" ] },
+  "fallas_automaticas": [ "Faltan supuestos explícitos (mínimo 2)", "Promete condiciones no autorizadas (crédito o garantías)" ],
+  "dictamen_esperado": { "dictamen": "devuelto", "correcciones": [ "Corregir: Faltan supuestos explícitos (mínimo 2)", "Corregir: Promete condiciones no autorizadas (crédito o garantías)" ] },
+  "nota": "Con fallas automáticas el servidor devuelve sin llamar al modelo (ahorro de costo)."
+}

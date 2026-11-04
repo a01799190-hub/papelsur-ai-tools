@@ -1,0 +1,20 @@
+{
+  "empresa": "PapelSur Distribuidora (empresa ficticia)",
+  "version": "catalogo-2026-11-01",
+  "moneda": "MXN",
+  "nota": "DATOS FICTICIOS para fines académicos. Precios sin IVA.",
+  "items": [
+    { "sku": "PS-HOJ-CAR", "descripcion": "Hojas bond carta 75 g, caja con 5000", "unidad": "caja", "precio_mxn": 689.00, "existencia": 120, "categoria": "papel" },
+    { "sku": "PS-HOJ-OFI", "descripcion": "Hojas bond oficio 75 g, caja con 5000", "unidad": "caja", "precio_mxn": 815.00, "existencia": 60, "categoria": "papel" },
+    { "sku": "PS-CUA-PRO", "descripcion": "Cuaderno profesional raya 100 hojas", "unidad": "pieza", "precio_mxn": 38.50, "existencia": 900, "categoria": "papel" },
+    { "sku": "PS-PLU-AZU", "descripcion": "Bolígrafo punto mediano azul, paquete con 12", "unidad": "paquete", "precio_mxn": 54.00, "existencia": 400, "categoria": "escritura" },
+    { "sku": "PS-PLU-NEG", "descripcion": "Bolígrafo punto mediano negro, paquete con 12", "unidad": "paquete", "precio_mxn": 54.00, "existencia": 350, "categoria": "escritura" },
+    { "sku": "PS-LAP-HB2", "descripcion": "Lápiz grafito HB número 2, caja con 12", "unidad": "caja", "precio_mxn": 32.00, "existencia": 500, "categoria": "escritura" },
+    { "sku": "PS-MAR-PIZ", "descripcion": "Marcador para pizarrón blanco, juego de 4 colores", "unidad": "juego", "precio_mxn": 96.00, "existencia": 150, "categoria": "escritura" },
+    { "sku": "PS-FOL-CAR", "descripcion": "Fólder manila tamaño carta, paquete con 100", "unidad": "paquete", "precio_mxn": 210.00, "existencia": 80, "categoria": "archivo" },
+    { "sku": "PS-CAJ-ARC", "descripcion": "Caja de archivo muerto tamaño oficio", "unidad": "pieza", "precio_mxn": 42.00, "existencia": 300, "categoria": "archivo" },
+    { "sku": "PS-TON-LAS", "descripcion": "Tóner genérico para impresora láser monocromática", "unidad": "pieza", "precio_mxn": 1150.00, "existencia": 25, "categoria": "consumibles" },
+    { "sku": "PS-GRA-STD", "descripcion": "Engrapadora de escritorio estándar", "unidad": "pieza", "precio_mxn": 145.00, "existencia": 70, "categoria": "accesorios" },
+    { "sku": "PS-POS-IT3", "descripcion": "Notas adhesivas 3x3 pulgadas, paquete con 12 blocks", "unidad": "paquete", "precio_mxn": 118.00, "existencia": 200, "categoria": "accesorios" }
+  ]
+}

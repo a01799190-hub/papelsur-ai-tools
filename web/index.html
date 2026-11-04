@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PapelSur · Panel de cotizaciones (empresa ficticia)</title>
+<meta name="description" content="Panel del proyecto final de AI Tools: cotizaciones con cuatro agentes, aprobación humana y agente de voz. Datos ficticios.">
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#1b1f24; --muted:#4a5562; --line:#d5dbe2;
+    --brand:#0b5cad; --brand-ink:#ffffff; --ok:#1e7a3c; --warn:#8a5a00; --bad:#b3261e; --focus:#ffbf47;
+    --c1:#0b5cad; --c2:#2f8f6b; --c3:#c0590a; --c4:#7a4fb3; --c5:#6b7785;
+  }
+  *{box-sizing:border-box}
+  html{font-size:16px}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  a{color:var(--brand)}
+  :focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+  .skip{position:absolute;left:-999px;top:0;background:var(--ink);color:#fff;padding:.5rem 1rem;z-index:10}
+  .skip:focus{left:0}
+  header{background:var(--brand);color:var(--brand-ink);padding:1.25rem 1rem}
+  header .wrap,main{max-width:1180px;margin:0 auto}
+  header h1{margin:0 0 .25rem;font-size:1.5rem}
+  header p{margin:.15rem 0;color:#e6efff}
+  .meta{display:flex;flex-wrap:wrap;gap:.25rem 1.25rem;font-size:.9rem;margin-top:.5rem}
+  .badge{display:inline-block;background:#fff3cd;color:#5c3d00;border-radius:999px;padding:.15rem .6rem;font-weight:700;font-size:.85rem}
+  main{padding:1rem}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1rem 1.1rem;margin:0 0 1rem}
+  h2{font-size:1.2rem;margin:.1rem 0 .6rem}
+  .grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .kpi{border:1px solid var(--line);border-radius:10px;padding:.9rem}
+  .kpi .v{font-size:2rem;font-weight:800;margin:.1rem 0}
+  .kpi .u{font-size:1rem;font-weight:600;color:var(--muted)}
+  .kpi dl{margin:.4rem 0 0;font-size:.85rem;color:var(--muted)}
+  .kpi dt{font-weight:700;color:var(--ink);display:inline}
+  .kpi dd{display:inline;margin:0}
+  .estado{padding:.75rem 1rem;border-radius:8px;margin:.5rem 0;border-left:6px solid}
+  .estado.info{background:#eaf2fb;border-color:var(--brand)}
+  .estado.warn{background:#fff7e0;border-color:var(--warn)}
+  .estado.err{background:#fdecea;border-color:var(--bad)}
+  .hidden{display:none !important}
+  .bars{display:grid;gap:.45rem}
+  .bar{display:grid;grid-template-columns:minmax(120px,190px) 1fr 3rem;align-items:center;gap:.5rem;font-size:.9rem}
+  .track{background:#eef1f4;border-radius:6px;height:1.4rem;overflow:hidden}
+  .track,.fill{display:block}
+  .fill{height:100%;border-radius:6px}
+  .bar .n{text-align:right;font-weight:700}
+  form.filtros{display:flex;flex-wrap:wrap;gap:.75rem;align-items:flex-end;margin-bottom:.75rem}
+  label{font-weight:600;font-size:.9rem;display:block;margin-bottom:.2rem}
+  select,input[type=search]{font:inherit;padding:.45rem .55rem;border:1px solid #8b96a3;border-radius:6px;min-width:10rem;background:#fff;color:var(--ink)}
+  button{font:inherit;font-weight:700;padding:.5rem .9rem;border-radius:8px;border:2px solid var(--brand);background:var(--brand);color:#fff;cursor:pointer}
+  button.sec{background:#fff;color:var(--brand)}
+  button:disabled{opacity:.6;cursor:not-allowed}
+  .tabla{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:.92rem}
+  caption{text-align:left;color:var(--muted);font-size:.85rem;padding-bottom:.4rem}
+  th,td{padding:.5rem .55rem;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+  th{background:#f0f3f6}
+  td.num,th.num{text-align:right}
+  .chip{display:inline-block;padding:.05rem .5rem;border-radius:999px;font-size:.8rem;font-weight:700;border:1px solid}
+  .chip.ok{color:var(--ok);border-color:var(--ok)} .chip.bad{color:var(--bad);border-color:var(--bad)} .chip.warn{color:var(--warn);border-color:var(--warn)}
+  .pasos{margin:.25rem 0 0;padding-left:1.2rem}
+  .voz-box{display:grid;gap:.75rem}
+  footer{max-width:1180px;margin:0 auto;padding:0 1rem 2rem;color:var(--muted);font-size:.85rem}
+  @media (max-width:480px){
+    header h1{font-size:1.25rem}
+    .bar{grid-template-columns:110px 1fr 2.5rem}
+    .kpi .v{font-size:1.7rem}
+    th,td{white-space:normal}
+  }
+  @media (prefers-reduced-motion:no-preference){.fill{transition:width .4s ease}}
+</style>
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<header>
+  <div class="wrap">
+    <span class="badge">DATOS FICTICIOS · MODO SIMULADO</span>
+    <h1>PapelSur Distribuidora — Panel de cotizaciones</h1>
+    <p>Recibimos solicitudes por Telegram o por voz, cuatro agentes preparan y revisan la cotización y una persona la aprueba.</p>
+    <div class="meta" aria-live="polite">
+      <span><strong>Periodo:</strong> <span id="m-periodo">—</span></span>
+      <span><strong>Fuente:</strong> <span id="m-fuente">—</span></span>
+      <span><strong>Actualizado:</strong> <span id="m-actualizado">—</span></span>
+    </div>
+  </div>
+</header>
+
+<main id="contenido">
+  <div id="st-cargando" class="estado info" role="status">Cargando datos del panel…</div>
+  <div id="st-error" class="estado err hidden" role="alert">No se pudieron cargar los datos del panel. Recarga la página; si persiste, usa el bot de Telegram para consultar tu folio.</div>
+  <div id="st-viejo" class="estado warn hidden" role="status">Los datos tienen más de 7 días sin actualizarse. Las cifras pueden no reflejar el estado actual.</div>
+  <div id="st-ejemplo" class="estado warn hidden" role="status">Estás viendo <strong>datos de ejemplo</strong>. Se reemplazan con la exportación sanitizada de los casos reales de prueba.</div>
+
+  <section aria-labelledby="h-valor">
+    <h2 id="h-valor">¿Qué decisión apoya este panel?</h2>
+    <p>Ayuda a la gerencia comercial ficticia a decidir <strong>si el proceso automatizado responde rápido, con calidad y a un costo aceptable</strong>, y en qué etapa se detienen los casos.</p>
+    <ol class="pasos">
+      <li>Solicitud por Telegram (<code>/nuevo</code>) o por el agente de voz de esta página.</li>
+      <li>Agente 1 estructura → Agente 2 verifica en catálogo → Agente 3 cotiza con reglas → Agente 4 revisa.</li>
+      <li>Una persona autorizada aprueba o rechaza en Telegram; todo queda registrado con el mismo folio.</li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="h-kpi">
+    <h2 id="h-kpi">Indicadores del proceso</h2>
+    <div class="grid" id="kpis"></div>
+  </section>
+
+  <section aria-labelledby="h-graf">
+    <h2 id="h-graf">¿Dónde terminan los casos?</h2>
+    <p id="graf-resumen" class="u"></p>
+    <div class="bars" id="grafica" role="img" aria-labelledby="h-graf graf-resumen"></div>
+    <div id="graf-vacio" class="estado info hidden">Aún no hay casos para graficar.</div>
+    <details style="margin-top:.75rem"><summary>Ver la gráfica como tabla</summary>
+      <div class="tabla"><table><caption>Casos por estado final</caption><thead><tr><th scope="col">Estado</th><th scope="col" class="num">Casos</th><th scope="col" class="num">% del total</th></tr></thead><tbody id="graf-tabla"></tbody></table></div>
+    </details>
+  </section>
+
+  <section aria-labelledby="h-hist">
+    <h2 id="h-hist">Historial sanitizado</h2>
+    <form class="filtros" id="filtros" onsubmit="return false">
+      <div><label for="f-canal">Canal</label><select id="f-canal"><option value="">Todos</option><option value="telegram">Telegram</option><option value="voz">Voz</option></select></div>
+      <div><label for="f-estado">Estado</label><select id="f-estado"><option value="">Todos</option></select></div>
+      <div><label for="f-folio">Buscar folio</label><input type="search" id="f-folio" placeholder="PS-20261103-AB12" autocomplete="off"></div>
+      <div><button type="button" class="sec" id="f-reset">Restablecer filtros</button></div>
+    </form>
+    <p id="t-conteo" aria-live="polite" class="u"></p>
+    <div class="tabla">
+      <table>
+        <caption>Sin nombres, conversaciones ni datos personales. Totales en MXN con IVA (resultado simulado).</caption>
+        <thead><tr><th scope="col">Folio</th><th scope="col">Fecha (UTC)</th><th scope="col">Canal</th><th scope="col">Estado</th><th scope="col" class="num">Versión</th><th scope="col" class="num">Total MXN</th><th scope="col" class="num">Costo IA USD</th></tr></thead>
+        <tbody id="t-body"></tbody>
+      </table>
+    </div>
+    <div id="t-vacio" class="estado info hidden">No hay resultados con esos filtros. Usa «Restablecer filtros».</div>
+  </section>
+
+  <section aria-labelledby="h-voz">
+    <h2 id="h-voz">Asistente de voz</h2>
+    <div class="voz-box">
+      <p>Habla con un <strong>asistente de inteligencia artificial</strong> para consultar el estado de un folio o crear una solicitud de prueba. Solo maneja información ficticia. No compartas datos personales.</p>
+      <div>
+        <input type="checkbox" id="voz-ok"> <label for="voz-ok" style="display:inline">Entiendo que hablaré con una IA y acepto usar el micrófono para esta prueba.</label>
+      </div>
+      <div><button type="button" id="voz-iniciar" disabled>Activar asistente de voz</button></div>
+      <div id="voz-estado" class="estado info hidden" role="status"></div>
+      <div id="voz-widget"></div>
+      <p class="u">¿Prefieres texto? Usa el bot de Telegram del proyecto (<code>/estado FOLIO</code>). Si la voz falla, ahí puedes continuar.</p>
+    </div>
+  </section>
+</main>
+<footer>
+  Proyecto final individual de AI Tools · PapelSur es una empresa ficticia · Los resultados son simulados y no generan compromisos. Fuente de datos: <code>data/panel.json</code>, generado por GitHub Actions desde una exportación sanitizada.
+</footer>
+
+<script>
+(() => {
+  // Identificador PÚBLICO del agente (no es una API key). Restringe el dominio en la pestaña Security de ElevenLabs.
+  const AGENT_ID = 'REEMPLAZAR_AGENT_ID';
+  const ETIQUETAS = { aprobado:'Aprobado (simulado)', rechazado:'Rechazado', vencido:'Aprobación vencida', pendiente_aprobacion:'Pendiente de aprobación', requiere_aclaracion:'Requiere aclaración', sin_coincidencias:'Sin coincidencias', escalado_humano:'Escalado a persona', bloqueado_politica:'Bloqueado por política', detenido_revision:'Detenido en revisión', detenido_presupuesto:'Detenido por límite', error:'Error controlado', error_validacion:'Error de validación' };
+  const TIPO = { aprobado:'ok', pendiente_aprobacion:'warn', requiere_aclaracion:'warn', escalado_humano:'warn', vencido:'warn' };
+  const COLORES = ['--c1','--c2','--c3','--c4','--c5'];
+  const $ = id => document.getElementById(id);
+  const fmt = (n, d=2) => Number(n).toLocaleString('es-MX', { minimumFractionDigits:d, maximumFractionDigits:d });
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let datos = null;
+
+  function kpis(k) {
+    const defs = [
+      ['tiempo_ciclo_min', 'Tiempo de ciclo promedio', v => fmt(v,1), 'Menor es mejor. Mide la rapidez desde la solicitud hasta la decisión humana.'],
+      ['aprobacion_primera_pct', 'Aprobación del revisor a la primera', v => fmt(v,1), 'Mayor es mejor. Si baja, revisar el skill de cotización.'],
+      ['costo_promedio_usd', 'Costo variable de IA por caso', v => fmt(v,6), 'Costo medido de modelos; el costo de casos fallidos se reporta aparte.']
+    ];
+    $('kpis').innerHTML = defs.map(([key, titulo, f, lectura]) => {
+      const x = k[key] || {};
+      const vacio = x.valor === null || x.valor === undefined;
+      const extra = key === 'costo_promedio_usd' && !vacio ? `<div><dt>Fallidos:</dt> <dd>${x.fallidos} casos, ${fmt(x.costo_fallidos_usd,6)} USD</dd></div>` : '';
+      return `<article class="kpi" aria-label="${esc(titulo)}">
+        <div>${esc(titulo)}</div>
+        <div class="v">${vacio ? 'Sin datos' : f(x.valor)} <span class="u">${vacio ? '' : esc(x.unidad)}</span></div>
+        <dl><div><dt>Fórmula:</dt> <dd>${esc(x.formula || '—')}</dd></div>
+        <div><dt>Denominador:</dt> <dd>${x.denominador ?? 0} casos</dd></div>${extra}
+        <div><dt>Lectura:</dt> <dd>${esc(vacio ? 'Aún no hay casos suficientes para calcularlo.' : lectura)}</dd></div></dl>
+      </article>`;
+    }).join('');
+  }
+
+  function grafica(porEstado) {
+    const filas = Object.entries(porEstado || {}).sort((a,b) => b[1]-a[1]);
+    const total = filas.reduce((a, [,n]) => a+n, 0);
+    $('graf-vacio').classList.toggle('hidden', total > 0);
+    if (!total) { $('grafica').innerHTML=''; $('graf-tabla').innerHTML=''; $('graf-resumen').textContent=''; return; }
+    const max = Math.max(...filas.map(f => f[1]));
+    $('grafica').innerHTML = filas.map(([e,n],i) => `<div class="bar"><span>${esc(ETIQUETAS[e]||e)}</span>
+      <span class="track"><span class="fill" style="width:${(n/max*100).toFixed(1)}%;background:var(${COLORES[i%COLORES.length]})"></span></span>
+      <span class="n">${n}</span></div>`).join('');
+    $('graf-tabla').innerHTML = filas.map(([e,n]) => `<tr><td>${esc(ETIQUETAS[e]||e)}</td><td class="num">${n}</td><td class="num">${fmt(n/total*100,1)}%</td></tr>`).join('');
+    const top = filas[0];
+    $('graf-resumen').textContent = `${total} casos en el periodo. El estado más frecuente es «${ETIQUETAS[top[0]]||top[0]}» con ${top[1]} casos (${fmt(top[1]/total*100,1)} %).`;
+  }
+
+  function tabla() {
+    const c = $('f-canal').value, e = $('f-estado').value, q = $('f-folio').value.trim().toUpperCase();
+    const filas = datos.historial.filter(h => (!c || h.canal===c) && (!e || h.estado===e) && (!q || h.caso_id.includes(q)));
+    $('t-body').innerHTML = filas.map(h => `<tr><td><code>${esc(h.caso_id)}</code></td><td>${esc(h.fecha)}</td><td>${esc(h.canal)}</td>
+      <td><span class="chip ${TIPO[h.estado]||'bad'}">${esc(ETIQUETAS[h.estado]||h.estado)}</span></td><td class="num">${h.version}</td>
+      <td class="num">${h.total_mxn ? fmt(h.total_mxn) : '—'}</td><td class="num">${fmt(h.costo_usd,6)}</td></tr>`).join('');
+    $('t-vacio').classList.toggle('hidden', filas.length > 0);
+    $('t-conteo').textContent = `Mostrando ${filas.length} de ${datos.historial.length} casos.`;
+  }
+
+  async function cargar() {
+    try {
+      const r = await fetch('data/panel.json', { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      datos = await r.json();
+      $('st-cargando').classList.add('hidden');
+      $('m-periodo').textContent = datos.periodo && datos.periodo.desde ? `${datos.periodo.desde} a ${datos.periodo.hasta}` : 'sin casos';
+      $('m-fuente').textContent = datos.fuente;
+      $('m-actualizado').textContent = new Date(datos.actualizado).toLocaleString('es-MX', { dateStyle:'medium', timeStyle:'short' });
+      if (Date.now() - new Date(datos.actualizado).getTime() > 7*864e5) $('st-viejo').classList.remove('hidden');
+      if (datos.es_ejemplo) $('st-ejemplo').classList.remove('hidden');
+      kpis(datos.kpis || {});
+      grafica(datos.por_estado);
+      const sel = $('f-estado');
+      [...new Set(datos.historial.map(h => h.estado))].forEach(e => sel.insertAdjacentHTML('beforeend', `<option value="${esc(e)}">${esc(ETIQUETAS[e]||e)}</option>`));
+      tabla();
+    } catch (e) {
+      $('st-cargando').classList.add('hidden');
+      $('st-error').classList.remove('hidden');
+      console.warn('Panel sin datos:', e.message);
+    }
+  }
+  ['f-canal','f-estado'].forEach(id => $(id).addEventListener('change', () => datos && tabla()));
+  $('f-folio').addEventListener('input', () => datos && tabla());
+  $('f-reset').addEventListener('click', () => { $('f-canal').value=''; $('f-estado').value=''; $('f-folio').value=''; datos && tabla(); $('f-canal').focus(); });
+
+  // ---- Voz: consentimiento → permiso de micrófono → widget oficial ----
+  const vozEstado = (msg, tipo='info') => { const el = $('voz-estado'); el.className = 'estado ' + tipo; el.textContent = msg; };
+  $('voz-ok').addEventListener('change', e => { $('voz-iniciar').disabled = !e.target.checked; });
+  $('voz-iniciar').addEventListener('click', async () => {
+    if (AGENT_ID.startsWith('REEMPLAZAR')) { vozEstado('El asistente de voz aún no está configurado en esta publicación. Usa Telegram.', 'warn'); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { vozEstado('Tu navegador no permite usar el micrófono. Usa el bot de Telegram.', 'warn'); return; }
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+      s.getTracks().forEach(t => t.stop());
+    } catch (e) {
+      vozEstado('No se concedió el permiso del micrófono. Puedes habilitarlo en tu navegador o continuar por Telegram con /estado FOLIO.', 'err');
+      return;
+    }
+    vozEstado('Cargando el asistente de voz…');
+    const w = document.createElement('elevenlabs-convai');
+    w.setAttribute('agent-id', AGENT_ID);
+    w.setAttribute('override-language', 'es');
+    $('voz-widget').replaceChildren(w);
+    const sc = document.createElement('script');
+    sc.src = 'https://unpkg.com/@elevenlabs/convai-widget-embed'; sc.async = true; sc.type = 'text/javascript';
+    sc.onload = () => vozEstado('Asistente listo. Pulsa el botón del widget para empezar a hablar.', 'info');
+    sc.onerror = () => vozEstado('El servicio de voz no está disponible ahora. Continúa por Telegram.', 'err');
+    document.body.appendChild(sc);
+    $('voz-iniciar').disabled = true;
+  });
+  cargar();
+})();
+</script>
+</body>
+</html>

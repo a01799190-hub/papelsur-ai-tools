@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Contrato de entrada al orquestador PapelSur",
+  "type": "object",
+  "required": ["caso_id", "canal", "usuario", "objetivo", "texto", "modo", "limite_costo_usd"],
+  "properties": {
+    "caso_id": { "type": "string", "pattern": "^PS-\\d{8}-[A-Z0-9]{4}$" },
+    "canal": { "enum": ["telegram", "voz"] },
+    "usuario": { "type": "string", "description": "Seudónimo (u_xxxxxxxx) o 'voz_publica'. Nunca el ID real." },
+    "objetivo": { "const": "cotizacion" },
+    "texto": { "type": "string", "minLength": 5, "maxLength": 1200, "description": "Dato no confiable" },
+    "modo": { "const": "SIMULADO" },
+    "limite_costo_usd": { "type": "number", "maximum": 0.05 },
+    "max_llamadas": { "type": "integer", "maximum": 12 },
+    "tiempo_limite_ms": { "type": "integer", "maximum": 180000 },
+    "minutos_expiracion": { "type": "integer" },
+    "demo_v1": { "type": "boolean", "description": "true solo con #demo-loop: fuerza V1 sin skill para demostrar el loop" },
+    "evento_id": { "type": "string" },
+    "creado": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": true
+}

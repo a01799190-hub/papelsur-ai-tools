@@ -1,0 +1,7 @@
+caso_id,fecha,canal,estado,version,total_mxn,costo_usd
+PS-20261103-AB12,2026-11-03 15:02,telegram,aprobado,1,31140.9,0.001605
+PS-20261103-CD34,2026-11-03 15:20,telegram,aprobado,2,31140.9,0.0019175
+PS-20261103-HK7Q,2026-11-03 16:00,telegram,rechazado,1,849.7,0.00154
+PS-20261103-VZ5M,2026-11-03 16:30,voz,aprobado,1,7923.38,0.00161
+PS-20261103-EF56,2026-11-03 17:00,telegram,bloqueado_politica,0,0.0,0.0
+PS-20261103-GH78,2026-11-03 17:10,telegram,requiere_aclaracion,0,0.0,0.0001875

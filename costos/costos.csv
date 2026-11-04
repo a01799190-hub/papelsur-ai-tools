@@ -1,0 +1,20 @@
+fecha_hora,caso_id,llamada_id,etapa,agente,proveedor,modelo,tokens_entrada,tokens_salida,tokens_cache,duracion_voz_s,unidad_cobro,tarifa_entrada,tarifa_salida,costo,moneda,estado,reintento,origen
+2026-11-03T15:02:12Z,PS-20261103-AB12,PS-20261103-AB12-A1-01,agente_1_recepcion,A1,Google Gemini API,gemini-3.1-flash-lite,520,90,0,,USD por 1M tokens,0.25,1.50,0.000265,USD,ok,0,ejemplo
+2026-11-03T15:02:14Z,PS-20261103-AB12,PS-20261103-AB12-A2-02,agente_2_catalogo,A2,Google Gemini API,gemini-3.1-flash-lite,980,110,0,,USD por 1M tokens,0.25,1.50,0.00041,USD,ok,0,ejemplo
+2026-11-03T15:02:17Z,PS-20261103-AB12,PS-20261103-AB12-A3-03,agente_3_cotizador,A3,Google Gemini API,gemini-3.1-flash-lite,1100,160,0,,USD por 1M tokens,0.25,1.50,0.000515,USD,ok,0,ejemplo
+2026-11-03T15:02:20Z,PS-20261103-AB12,PS-20261103-AB12-A4-04,agente_4_revisor,A4,Google Gemini API,gemini-3.1-flash-lite,1300,60,0,,USD por 1M tokens,0.25,1.50,0.000415,USD,ok,0,ejemplo
+2026-11-03T15:20:02Z,PS-20261103-CD34,PS-20261103-CD34-A1-01,agente_1_recepcion,A1,Google Gemini API,gemini-3.1-flash-lite,530,90,0,,USD por 1M tokens,0.25,1.50,0.0002675,USD,ok,0,ejemplo
+2026-11-03T15:20:04Z,PS-20261103-CD34,PS-20261103-CD34-A2-02,agente_2_catalogo,A2,Google Gemini API,gemini-3.1-flash-lite,980,110,0,,USD por 1M tokens,0.25,1.50,0.00041,USD,ok,0,ejemplo
+2026-11-03T15:20:07Z,PS-20261103-CD34,PS-20261103-CD34-A3-03,agente_3_cotizador,A3,Google Gemini API,gemini-3.1-flash-lite,700,70,0,,USD por 1M tokens,0.25,1.50,0.28E-3,USD,ok,0,ejemplo
+2026-11-03T15:20:10Z,PS-20261103-CD34,PS-20261103-CD34-A3-04,agente_3_cotizador,A3,Google Gemini API,gemini-3.1-flash-lite,1180,165,0,,USD por 1M tokens,0.25,1.50,0.0005425,USD,ok,1,ejemplo
+2026-11-03T15:20:13Z,PS-20261103-CD34,PS-20261103-CD34-A4-05,agente_4_revisor,A4,Google Gemini API,gemini-3.1-flash-lite,1310,60,0,,USD por 1M tokens,0.25,1.50,0.0004175,USD,ok,0,ejemplo
+2026-11-03T16:00:02Z,PS-20261103-HK7Q,PS-20261103-HK7Q-A1-01,agente_1_recepcion,A1,Google Gemini API,gemini-3.1-flash-lite,515,85,0,,USD por 1M tokens,0.25,1.50,0.00025625,USD,ok,0,ejemplo
+2026-11-03T16:00:04Z,PS-20261103-HK7Q,PS-20261103-HK7Q-A2-02,agente_2_catalogo,A2,Google Gemini API,gemini-3.1-flash-lite,975,105,0,,USD por 1M tokens,0.25,1.50,0.00040125,USD,ok,0,ejemplo
+2026-11-03T16:00:07Z,PS-20261103-HK7Q,PS-20261103-HK7Q-A3-03,agente_3_cotizador,A3,Google Gemini API,gemini-3.1-flash-lite,1050,150,0,,USD por 1M tokens,0.25,1.50,0.0004875,USD,ok,0,ejemplo
+2026-11-03T16:00:10Z,PS-20261103-HK7Q,PS-20261103-HK7Q-A4-04,agente_4_revisor,A4,Google Gemini API,gemini-3.1-flash-lite,1250,55,0,,USD por 1M tokens,0.25,1.50,0.00039500,USD,ok,0,ejemplo
+2026-11-03T16:30:00Z,PS-20261103-VZ5M,PS-20261103-VZ5M-VOZ-00,voz_elevenlabs,VOZ,ElevenLabs,agente de voz (ver panel de ElevenLabs),0,0,0,95,minutos de conversación (según plan),0,0,0,USD,incluido_en_plan,0,ejemplo
+2026-11-03T16:30:05Z,PS-20261103-VZ5M,PS-20261103-VZ5M-A1-01,agente_1_recepcion,A1,Google Gemini API,gemini-3.1-flash-lite,525,95,0,,USD por 1M tokens,0.25,1.50,0.00027375,USD,ok,0,ejemplo
+2026-11-03T16:30:07Z,PS-20261103-VZ5M,PS-20261103-VZ5M-A2-02,agente_2_catalogo,A2,Google Gemini API,gemini-3.1-flash-lite,985,110,0,,USD por 1M tokens,0.25,1.50,0.00041125,USD,ok,0,ejemplo
+2026-11-03T16:30:10Z,PS-20261103-VZ5M,PS-20261103-VZ5M-A3-03,agente_3_cotizador,A3,Google Gemini API,gemini-3.1-flash-lite,1090,160,0,,USD por 1M tokens,0.25,1.50,0.0005125,USD,ok,0,ejemplo
+2026-11-03T16:30:13Z,PS-20261103-VZ5M,PS-20261103-VZ5M-A4-04,agente_4_revisor,A4,Google Gemini API,gemini-3.1-flash-lite,1290,60,0,,USD por 1M tokens,0.25,1.50,0.0004125,USD,ok,0,ejemplo
+2026-11-03T17:10:01Z,PS-20261103-GH78,PS-20261103-GH78-A1-01,agente_1_recepcion,A1,Google Gemini API,gemini-3.1-flash-lite,510,40,0,,USD por 1M tokens,0.25,1.50,0.0001875,USD,ok,0,ejemplo

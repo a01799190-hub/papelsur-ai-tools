@@ -1,0 +1,12 @@
+proveedor,producto,unidad,tarifa_usd,fuente,fecha_consulta,notas
+Google Gemini API,gemini-3.1-flash-lite entrada,USD por 1M tokens,0.25,https://ai.google.dev/gemini-api/docs/pricing,2026-11-03,Nivel pagado estándar; existe nivel gratuito con límites menores (el contenido del nivel gratuito puede usarse para mejorar productos de Google)
+Google Gemini API,gemini-3.1-flash-lite salida,USD por 1M tokens,1.50,https://ai.google.dev/gemini-api/docs/pricing,2026-11-03,Incluye tokens de razonamiento según la página de precios
+ElevenLabs,ElevenAgents minuto de conversación,USD por minuto,0.08,https://elevenlabs.io/pricing/agents,2026-11-03,Misma tarifa en todos los planes; el LLM del agente se cobra aparte "at cost"
+ElevenLabs,Plan Free minutos incluidos,minutos/mes,15,https://elevenlabs.io/pricing/agents,2026-11-03,4 llamadas concurrentes
+ElevenLabs,Plan Starter minutos incluidos,minutos/mes,75,https://elevenlabs.io/pricing/agents,2026-11-03,Precio mensual del plan: VERIFICAR en la página oficial (fuentes secundarias reportan 6 USD)
+ElevenLabs,Plan Creator minutos incluidos,minutos/mes,275,https://elevenlabs.io/pricing/agents,2026-11-03,Precio mensual del plan: VERIFICAR (fuentes secundarias reportan 22 USD)
+ElevenLabs,Plan Pro minutos incluidos,minutos/mes,1238,https://elevenlabs.io/pricing/agents,2026-11-03,Precio mensual del plan: VERIFICAR (fuentes secundarias reportan 99 USD)
+n8n,Plan del espacio de trabajo,USD por mes,VERIFICAR,https://n8n.io/pricing/,2026-11-03,Anota tu plan real (prueba Cloud o autohospedado); no tokeniza
+GitHub,Pages y Actions (repositorio público),USD por mes,0,https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages,2026-11-03,Verifica límites de minutos de Actions de tu cuenta; no tokeniza
+Telegram,Bot API,USD por mes,0,https://core.telegram.org/bots/api,2026-11-03,No tokeniza
+Banco de México,Tipo de cambio FIX MXN por USD,MXN por USD,VERIFICAR,https://www.banxico.org.mx/tipcamb/main.do?page=tip&idioma=sp,2026-11-03,Anota el valor y la fecha del día en que hagas el informe

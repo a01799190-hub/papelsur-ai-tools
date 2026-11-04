@@ -1,0 +1,11 @@
+{
+  "caso_aclaracion": {
+    "entrada_telegram": "/nuevo quiero papelería variada para mi oficina",
+    "resultado_esperado": "A1 responde estado 'aclaracion'; el orquestador cierra en requiere_aclaracion y pregunta productos y cantidades. El skill NO se activa."
+  },
+  "caso_salida_rechazada": {
+    "salida_A3": { "resumen": "Le ofrecemos pago a 60 días y garantía total.", "supuestos": [], "condiciones": [ "pago a 60 días" ] },
+    "fallas_esperadas": [ "Faltan supuestos explícitos (mínimo 2)", "Promete condiciones no autorizadas (crédito o garantías)" ],
+    "resultado_esperado": "A4 devuelve la propuesta; el loop regresa a A3"
+  }
+}

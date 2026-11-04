@@ -1,0 +1,647 @@
+{
+  "name": "PapelSur – 3 Voz ElevenLabs (herramienta)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "papelsur-voz",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "91be5f8a-0129-416f-98a2-b37a0bea4334",
+      "name": "Webhook voz",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REVINCULAR",
+          "name": "Voz ElevenLabs (Header Auth)"
+        }
+      },
+      "webhookId": "4035642a-0345-4102-b683-caba3222c4ef"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// ===== Utilidades comunes del orquestador (se copian en los nodos Code) =====\n// Tarifa verificada en https://ai.google.dev/gemini-api/docs/pricing el 2026-11-03. Vuelve a verificarla al implementar.\nconst CFG_LLM = {\n  URL: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',\n  PROVEEDOR: 'Google Gemini API',\n  MODELO: 'gemini-3.1-flash-lite',\n  TARIFA_IN: 0.25,   // USD por 1M tokens de entrada\n  TARIFA_OUT: 1.50   // USD por 1M tokens de salida\n};\n\nfunction ahora() { return new Date().toISOString(); }\n\n// Seudónimo no reversible a simple vista (FNV-1a). No es criptográfico: solo evita mostrar IDs reales.\nfunction seudonimo(v) {\n  let h = 0x811c9dc5; const s = String(v);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'u_' + h.toString(16).padStart(8, '0');\n}\n\nconst PATRONES_INYECCION = [\n  /ignor(a|ar|en|e)\\s+(las\\s+|todas\\s+las\\s+|tus\\s+)?(instrucciones|reglas|pol[ií]ticas)/i,\n  /ignore\\s+(all\\s+|previous\\s+|the\\s+)?(instructions|rules)/i,\n  /(revela|muestra|dame|imprime|env[ií]a).{0,30}(token|clave|api.?key|secret|contrase[nñ]a|prompt)/i,\n  /system\\s*prompt|prompt\\s+de\\s+sistema/i,\n  /(desactiva|apaga|omite|salta).{0,30}(control|regla|guardrail|revis|aprobaci)/i,\n  /(act[uú]a|finge)\\s+como\\s+(administrador|desarrollador|root)/i,\n  /<\\s*script|javascript:|https?:\\/\\//i\n];\nfunction detectarInyeccion(texto) { return PATRONES_INYECCION.some(p => p.test(String(texto || ''))); }\n\nfunction parseJsonLLM(texto) {\n  if (typeof texto !== 'string') return null;\n  const t = texto.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  try { return JSON.parse(t); } catch (e) {\n    const a = t.indexOf('{'), b = t.lastIndexOf('}');\n    if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch (e2) { /* sigue */ } }\n    return null;\n  }\n}\n\nfunction costoUSD(tin, tout) { return (tin * CFG_LLM.TARIFA_IN + tout * CFG_LLM.TARIFA_OUT) / 1000000; }\n\nfunction traza(s, agente, estado, resumen) {\n  s.traza.push({ ts: ahora(), caso_id: s.caso_id, agente, estado, resumen: String(resumen).slice(0, 300) });\n}\n\n// Loop de seguridad y costo: evalúa permisos/presupuesto ANTES de llamar al modelo.\nfunction prepararLlamada(s, agente, etapa, system, user, maxTokens) {\n  const messages = [ { role: 'system', content: system }, { role: 'user', content: user } ];\n  const estIn = Math.ceil(JSON.stringify(messages).length / 4);\n  const reserva = 1.2; // margen del 20 %\n  const estCosto = costoUSD(estIn, maxTokens) * reserva;\n  if (s.llamadas >= s.max_llamadas) return { ok: false, motivo: 'Límite de llamadas alcanzado (' + s.max_llamadas + ')' };\n  if (s.gastado_usd + estCosto > s.limite_costo_usd) {\n    return { ok: false, motivo: 'Presupuesto insuficiente: gastado ' + s.gastado_usd.toFixed(6) + ' + estimado ' + estCosto.toFixed(6) + ' > límite ' + s.limite_costo_usd + ' USD' };\n  }\n  if (Date.now() - s.t_inicio_ms > s.tiempo_limite_ms) return { ok: false, motivo: 'Tiempo límite del caso agotado' };\n  s.llamadas += 1;\n  s.llamada_actual = {\n    llamada_id: s.caso_id + '-' + agente + '-' + String(s.llamadas).padStart(2, '0'),\n    agente, etapa, t0: Date.now(), est_in: estIn, max_tokens: maxTokens,\n    reintento: (agente === 'A3' && s.iter_calidad > 0) ? 1 : 0\n  };\n  s.llm_request = { model: CFG_LLM.MODELO, messages, temperature: 0.2, max_tokens: maxTokens, response_format: { type: 'json_object' } };\n  traza(s, 'ORQ', 'invoca', agente + ' (' + s.llamada_actual.llamada_id + '), estimado ' + estCosto.toFixed(6) + ' USD');\n  return { ok: true };\n}\n\n// Registra consumo medido (usage del proveedor) o estimado si no viene.\nfunction registrarRespuesta(s, r) {\n  const c = s.llamada_actual || { llamada_id: s.caso_id + '-X', agente: '?', etapa: '?', t0: Date.now(), est_in: 0, reintento: 0 };\n  const dur = Date.now() - c.t0;\n  let estado = 'ok', contenido = null, tin, tout, origen = 'medido';\n  if (!r || r.error || !Array.isArray(r.choices) || !r.choices.length) estado = 'error_api';\n  else contenido = (r.choices[0].message || {}).content || null;\n  if (r && r.usage && Number.isFinite(r.usage.prompt_tokens)) {\n    tin = r.usage.prompt_tokens; tout = r.usage.completion_tokens || 0;\n  } else {\n    tin = c.est_in; tout = estado === 'ok' ? Math.ceil(String(contenido || '').length / 4) : 0; origen = 'estimado';\n  }\n  const usd = costoUSD(tin, tout);\n  s.gastado_usd += usd;\n  s.costos.push({\n    fecha_hora: ahora(), caso_id: s.caso_id, llamada_id: c.llamada_id, etapa: c.etapa, agente: c.agente,\n    proveedor: CFG_LLM.PROVEEDOR, modelo: CFG_LLM.MODELO, tokens_entrada: tin, tokens_salida: tout, tokens_cache: 0,\n    duracion_voz_s: '', unidad_cobro: 'USD por 1M tokens', tarifa_entrada: CFG_LLM.TARIFA_IN, tarifa_salida: CFG_LLM.TARIFA_OUT,\n    costo: Number(usd.toFixed(8)), moneda: 'USD', estado, reintento: c.reintento, origen, duracion_ms: dur\n  });\n  delete s.llm_request; delete s.llamada_actual;\n  return { estado, json: estado === 'ok' ? parseJsonLLM(contenido) : null, dur, llamada_id: c.llamada_id };\n}\n\nfunction salida(s, agente, estado, resultado, fuentes, advertencias, dur, ref) {\n  const o = { caso_id: s.caso_id, agente, estado, resultado, fuentes: fuentes || [], advertencias: advertencias || [], duracion_ms: dur || 0, ref_consumo: ref || null };\n  s.salidas[agente] = o;\n  return o;\n}\n\nfunction detener(s, estado, motivo) {\n  s.estado = estado; s.motivo_cierre = motivo; s.siguiente = 'cierre';\n  traza(s, 'ORQ', estado, motivo);\n}\n\nfunction copia(o) { return JSON.parse(JSON.stringify(o)); }\n\n// ===== Reglas deterministas de PapelSur (fuente única) =====\n// Se copia dentro de los nodos Code de n8n y se prueba en GitHub Actions (tests/test_reglas.js).\nconst POLITICA = {\n  version: 'politica_comercial v1.0',\n  IVA: 0.16,\n  ENVIO_MXN: 250,\n  ENVIO_GRATIS_DESDE: 3000,\n  DESCUENTOS: [ { desde: 15000, pct: 0.08 }, { desde: 5000, pct: 0.05 } ],\n  DESCUENTO_MAX: 0.10,\n  MAX_TOTAL_MXN: 100000,\n  MAX_CANTIDAD: 5000,\n  MAX_PARTIDAS: 20,\n  VIGENCIA_DIAS: 7,\n  ETIQUETA: 'RESULTADO SIMULADO'\n};\n\nfunction r2(x) { return Math.round((x + Number.EPSILON) * 100) / 100; }\n\n// lineas: [{ sku, descripcion, cantidad, precio_unitario, existencia }]\nfunction calcularCotizacion(lineas, P = POLITICA) {\n  const errores = [];\n  const advertencias = [];\n  const detalle = [];\n  if (!Array.isArray(lineas) || lineas.length === 0) errores.push('Sin líneas para cotizar');\n  if (Array.isArray(lineas) && lineas.length > P.MAX_PARTIDAS) errores.push('Más de ' + P.MAX_PARTIDAS + ' partidas');\n  for (const l of (lineas || [])) {\n    const cant = l.cantidad;\n    if (!Number.isInteger(cant) || cant < 1 || cant > P.MAX_CANTIDAD) { errores.push('Cantidad inválida en ' + l.sku); continue; }\n    if (!(typeof l.precio_unitario === 'number' && l.precio_unitario > 0)) { errores.push('Precio inválido en ' + l.sku); continue; }\n    const existencia = Number.isInteger(l.existencia) ? l.existencia : 0;\n    if (existencia < cant) advertencias.push(l.sku + ': existencia ' + existencia + ' de ' + cant + ' solicitadas (entrega parcial o pedido especial)');\n    detalle.push({ sku: l.sku, descripcion: l.descripcion, cantidad: cant, precio_unitario: l.precio_unitario, importe: r2(cant * l.precio_unitario) });\n  }\n  const subtotal = r2(detalle.reduce((a, d) => a + d.importe, 0));\n  let pct = 0;\n  for (const d of P.DESCUENTOS) { if (subtotal >= d.desde) { pct = d.pct; break; } }\n  pct = Math.min(pct, P.DESCUENTO_MAX);\n  const descuento = r2(subtotal * pct);\n  const base = r2(subtotal - descuento);\n  const envio = subtotal >= P.ENVIO_GRATIS_DESDE ? 0 : (detalle.length ? P.ENVIO_MXN : 0);\n  const iva = r2((base + envio) * P.IVA);\n  const total = r2(base + envio + iva);\n  return {\n    detalle, subtotal, descuento_pct: pct, descuento, envio, iva, total, moneda: 'MXN',\n    requiere_escalar: total > P.MAX_TOTAL_MXN, errores, advertencias, politica: P.version\n  };\n}\n\n// Revisión determinista del agente 4. Devuelve lista de fallas (vacía = pasa).\nfunction verificarPropuesta(prop, catalogoItems, P = POLITICA) {\n  const f = [];\n  if (!prop || typeof prop !== 'object') return ['Propuesta ausente'];\n  const porSku = {};\n  for (const it of (catalogoItems || [])) porSku[it.sku] = it;\n  for (const l of (prop.lineas || [])) {\n    const c = porSku[l.sku];\n    if (!c) f.push('SKU fuera del catálogo autorizado: ' + l.sku);\n    else if (c.precio_mxn !== l.precio_unitario) f.push('Precio de ' + l.sku + ' no coincide con catálogo');\n  }\n  const recalculo = calcularCotizacion((prop.lineas || []).map(l => ({ ...l, existencia: (porSku[l.sku] || {}).existencia })), P);\n  if (recalculo.total !== prop.total) f.push('Total no coincide con el recálculo (' + recalculo.total + ' vs ' + prop.total + ')');\n  if (prop.descuento_pct > P.DESCUENTO_MAX) f.push('Descuento mayor al máximo de política');\n  if (prop.vigencia_dias !== P.VIGENCIA_DIAS) f.push('Vigencia distinta de ' + P.VIGENCIA_DIAS + ' días');\n  if (prop.etiqueta !== P.ETIQUETA) f.push('Falta la etiqueta RESULTADO SIMULADO');\n  if (!Array.isArray(prop.supuestos) || prop.supuestos.length < 2) f.push('Faltan supuestos explícitos (mínimo 2)');\n  const resumen = String(prop.resumen || '');\n  if (resumen.length < 40 || resumen.length > 900) f.push('Resumen fuera de longitud (40 a 900 caracteres)');\n  const texto = resumen + ' ' + (prop.supuestos || []).join(' ') + ' ' + (prop.condiciones || []).join(' ');\n  if (/[\\w.+-]+@[\\w-]+\\.[\\w.]+/.test(texto) || /\\b\\d{10}\\b/.test(texto)) f.push('El texto contiene datos personales (correo o teléfono)');\n  if (/(cr[eé]dito|pago a \\d+ d[ií]as|garantizad)/i.test(texto)) f.push('Promete condiciones no autorizadas (crédito o garantías)');\n  if (!Array.isArray(prop.fuentes) || !prop.fuentes.some(x => /catalogo/i.test(x))) f.push('No cita el catálogo como fuente');\n  return f;\n}\n\ntry { if (typeof module !== 'undefined' && module.exports) module.exports = { POLITICA, r2, calcularCotizacion, verificarPropuesta }; } catch (e) { /* entorno n8n */ }\n\n// Nodo: «Guardrails voz». Modo: Run Once for All Items.\n// El webhook ya exige el encabezado secreto (credencial Header Auth). Aquí se validan campos y permisos.\nconst CFG = {\n  APROBADOR_CHAT_ID: 'REEMPLAZAR_CHAT_ID_DEL_APROBADOR', // a quién llegan los botones de casos creados por voz (no publicar)\n  LIMITE_COSTO_USD: 0.02, MAX_LLAMADAS: 10, TIEMPO_LIMITE_MS: 120000, MAX_TEXTO: 600, MINUTOS_EXPIRACION: 30\n};\nconst b = ($input.first().json.body) || {};\nconst accion = String(b.accion || '').toLowerCase();\nconst base = { cfg: CFG, canal: 'voz', usuario: 'voz_publica', chat_id: CFG.APROBADOR_CHAT_ID };\nconst error = (msg) => [{ json: { ...base, ruta: 2, respuesta: { ok: false, mensaje: msg } } }];\n\n// Deduplicación de reintentos del proveedor (misma petición en el mismo minuto)\nconst sd = $getWorkflowStaticData('global'); sd.vistos = sd.vistos || [];\nconst clave = 'voz:' + seudonimo(JSON.stringify(b) + new Date().toISOString().slice(0, 16));\nif (sd.vistos.includes(clave)) return error('Solicitud duplicada; ya se está procesando.');\nsd.vistos.push(clave); if (sd.vistos.length > 1000) sd.vistos = sd.vistos.slice(-1000);\n\nif (accion === 'consultar') {\n  const folio = String(b.folio || '').toUpperCase().replace(/\\s+/g, '');\n  if (!/^PS-\\d{8}-[A-Z0-9]{4}$/.test(folio)) return error('El folio debe tener el formato PS, fecha de ocho dígitos y cuatro caracteres. Pide al usuario que lo repita.');\n  return [{ json: { ...base, ruta: 0, caso_id: folio, evento_id: clave } }];\n}\nif (accion === 'crear') {\n  const texto = String(b.solicitud || '').trim();\n  if (texto.length < 5 || texto.length > CFG.MAX_TEXTO) return error('La solicitud está vacía o es demasiado larga. Pide productos y cantidades.');\n  if (detectarInyeccion(texto)) return error('Solicitud bloqueada por política: solo se aceptan productos y cantidades.');\n  return [{ json: { ...base, ruta: 1, texto, evento_id: clave } }];\n}\nreturn error('Acción no permitida. Usa consultar o crear.');\n"
+      },
+      "id": "81c22e30-22f0-4b60-af5f-e64c533cc68c",
+      "name": "Guardrails voz",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{ $json.ruta }}",
+        "options": {}
+      },
+      "id": "d415d226-43f4-4c7e-8f4c-9c644afef161",
+      "name": "Acción voz",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "casos"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "caso_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Guardrails voz').first().json.caso_id }}"
+            }
+          ]
+        },
+        "limit": 5
+      },
+      "id": "96f7c447-dc89-4e3e-9a44-24aa07edef84",
+      "name": "Buscar caso (voz)",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        660,
+        120
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// ===== Nodo «Respuesta consulta voz» (Run Once for All Items) =====\n// __CONSULTA__\nconst g = $('Guardrails voz').first().json;\nconst filas = $input.all().map(i => i.json).filter(f => f && f.caso_id === g.caso_id);\nif (!filas.length) return [{ json: { respuesta: { ok: false, folio: g.caso_id, mensaje: 'No existe ese folio en el registro de prueba. No inventes un estado.' } } }];\nconst f = filas[filas.length - 1];\nreturn [{ json: { respuesta: { ok: true, folio: f.caso_id, estado: f.estado, version: Number(f.version), total_mxn: Number(f.total_mxn), actualizado: f.actualizado, nota: 'RESULTADO SIMULADO de empresa ficticia' } } }];\n"
+      },
+      "id": "2aecb192-50a8-4973-bb35-b92010e5a9ea",
+      "name": "Respuesta consulta voz",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.respuesta) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "c95b421d-d534-4e50-996d-f35fe7005ab4",
+      "name": "Responder consulta",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Nodo: «Crear caso». Modo: Run Once for All Items.\n// Entrada: salida de guardrails (Telegram o voz). Salida: EXACTAMENTE las columnas de la tabla «casos».\nconst g = $input.first().json;\nconst d = new Date();\nconst fecha = d.toISOString().slice(0, 10).replace(/-/g, '');\nconst alfabeto = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';\nlet suf = ''; for (let i = 0; i < 4; i++) suf += alfabeto[Math.floor(Math.random() * alfabeto.length)];\nconst caso_id = 'PS-' + fecha + '-' + suf;\nconst entrada = {\n  caso_id,\n  canal: g.canal || 'telegram',\n  usuario: g.usuario,\n  objetivo: 'cotizacion',\n  texto: g.texto,\n  modo: 'SIMULADO',\n  limite_costo_usd: g.cfg.LIMITE_COSTO_USD,\n  max_llamadas: g.cfg.MAX_LLAMADAS,\n  tiempo_limite_ms: g.cfg.TIEMPO_LIMITE_MS,\n  minutos_expiracion: g.cfg.MINUTOS_EXPIRACION,\n  demo_v1: /#demo-loop/i.test(g.texto || ''),\n  evento_id: g.evento_id,\n  creado: d.toISOString()\n};\nreturn [{ json: {\n  caso_id,\n  canal: entrada.canal,\n  usuario: g.usuario,\n  chat_id: String(g.chat_id || ''),\n  estado: 'recibido',\n  version: 0,\n  texto: g.texto,\n  entrada_json: JSON.stringify(entrada),\n  resultado_json: '',\n  total_mxn: 0,\n  expira_en: '',\n  nonce: '',\n  decision: '',\n  decision_por: '',\n  costo_usd: 0,\n  evento_id: g.evento_id,\n  creado: entrada.creado,\n  actualizado: entrada.creado\n} }];\n"
+      },
+      "id": "a8308981-45ff-4b33-9121-b53eb00b9fd2",
+      "name": "Crear caso (voz)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "casos"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "5fd7f5b9-a0db-495d-ae49-7b5bbd7d24ba",
+      "name": "Insertar caso (voz)",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        880,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// (Run Once for All Items) =====\n// __CREACION__\nconst c = $('Crear caso (voz)').first().json;\nreturn [{ json: { respuesta: { ok: true, folio: c.caso_id, estado: 'en_proceso', mensaje: 'Caso creado. La propuesta se revisa y la aprueba una persona por Telegram. Consulta el folio en un minuto.' } } }];\n"
+      },
+      "id": "df39fea5-0fc2-4900-87ba-a30932d386c7",
+      "name": "Respuesta creación voz",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.respuesta) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "d00a45cc-8630-460e-986e-fb5be6160063",
+      "name": "Responder creación",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1320,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return [{ json: JSON.parse($('Crear caso (voz)').first().json.entrada_json) }];"
+      },
+      "id": "f6a4f34d-a0c8-4271-84af-6601b4af6251",
+      "name": "Entrada para orquestador (voz)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "PapelSur – 2 Orquestador y agentes"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "aa500c8b-a76c-4e94-8ddc-27f6ed329bd3",
+      "name": "Ejecutar orquestador (voz)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1760,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Nodo: «Registro de resultado». Modo: Run Once for All Items.\n// $json = respuesta del orquestador. Prepara fila del caso, filas de costo y mensaje de aprobación.\nconst res = $input.first().json;\nconst caso = $(\"Crear caso (voz)\").first().json;               // fila creada al inicio (incluye chat_id privado)\nconst chatDestino = caso.chat_id;                      // Telegram: chat del solicitante; Voz: chat del aprobador\nconst ahoraIso = new Date().toISOString();\nconst p = res.propuesta;\nconst nonce = Math.random().toString(36).slice(2, 8).padEnd(6, '0');\nconst expira = new Date(Date.now() + (res.minutos_expiracion || 30) * 60000).toISOString();\nconst resultadoPrivado = { estado: res.estado, motivo: res.motivo, propuesta: p, historial_versiones: res.historial_versiones, traza: res.traza, resumen_costos: res.resumen_costos, duracion_ms: res.duracion_ms };\nconst fila_caso = {\n  caso_id: res.caso_id, estado: res.estado, version: p ? p.version : 0,\n  resultado_json: JSON.stringify(resultadoPrivado).slice(0, 60000),\n  total_mxn: p ? p.total : 0, expira_en: p ? expira : '', nonce: p ? nonce : '',\n  costo_usd: res.resumen_costos.total_usd, actualizado: ahoraIso\n};\nconst fmt = n => Number(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });\nlet mensaje;\nif (p) {\n  const lineas = p.lineas.map(l => '• ' + l.cantidad + ' × ' + l.descripcion + ' = $' + fmt(l.importe)).join('\\n');\n  mensaje = '🧾 ' + p.etiqueta + ' — PapelSur (empresa ficticia)\\nFolio: ' + res.caso_id + ' · versión ' + p.version + '\\n\\n' + lineas +\n    '\\n\\nSubtotal: $' + fmt(p.subtotal) + '\\nDescuento (' + (p.descuento_pct * 100) + '%): −$' + fmt(p.descuento) + '\\nEnvío: $' + fmt(p.envio) +\n    '\\nIVA 16%: $' + fmt(p.iva) + '\\nTOTAL: $' + fmt(p.total) + ' MXN\\n\\n' + p.resumen + '\\n\\nSupuestos:\\n- ' + p.supuestos.join('\\n- ') +\n    '\\n\\nRevisada por el Agente 4. ¿Apruebas la orden de PRUEBA? Vence en ' + (res.minutos_expiracion || 30) + ' min.';\n} else {\n  mensaje = 'Folio ' + res.caso_id + ': ' + res.mensaje_usuario + (res.estado === 'requiere_aclaracion' ? '\\nResponde con /nuevo y la solicitud completa.' : '');\n}\nreturn [{ json: {\n  caso_id: res.caso_id, estado: res.estado, chat_id: chatDestino, mensaje: mensaje.slice(0, 4000),\n  tiene_propuesta: p ? 1 : 0,\n  cb_aprobar: p ? ('ap|' + res.caso_id + '|' + p.version + '|' + nonce) : '',\n  cb_rechazar: p ? ('rc|' + res.caso_id + '|' + p.version + '|' + nonce) : '',\n  fila_caso, filas_costos: res.costos\n} }];\n"
+      },
+      "id": "353a1f04-397f-4aaa-b081-d654769d42e6",
+      "name": "Registro de resultado (voz)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return [{ json: $input.first().json.fila_caso }];"
+      },
+      "id": "5b8df157-d3dd-4a8c-bccb-edc1387669aa",
+      "name": "Fila caso (voz)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "casos"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "caso_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.caso_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "b587df23-6299-4b2c-8a65-a3867c930640",
+      "name": "Actualizar caso (voz)",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        2420,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return ($input.first().json.filas_costos || []).map(c => ({ json: c }));"
+      },
+      "id": "5f0b6f2e-0d4a-4fe3-aee5-c355f74fdf2a",
+      "name": "Filas de costo (voz)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "costos"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "87a1a0cd-ae63-4a49-8127-688b749f177a",
+      "name": "Insertar costos (voz)",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        2420,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.tiene_propuesta === 1 ? 0 : 1 }}",
+        "options": {}
+      },
+      "id": "eceb4781-0f25-46f8-80b1-f3404f049a0d",
+      "name": "¿Hay propuesta? (voz)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        2200,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.mensaje }}",
+        "additionalFields": {
+          "appendAttribution": false
+        },
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ Aprobar",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.cb_aprobar }}"
+                    }
+                  },
+                  {
+                    "text": "❌ Rechazar",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.cb_rechazar }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "id": "5a84f782-9855-4515-89f6-d4d961e8493f",
+      "name": "Telegram: propuesta con botones (voz)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2420,
+        440
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REVINCULAR",
+          "name": "Telegram PapelSur Bot"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.mensaje }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "e277869c-9fe1-468b-9ff4-eb4b0ce90a91",
+      "name": "Telegram: resultado sin propuesta (voz)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2420,
+        580
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REVINCULAR",
+          "name": "Telegram PapelSur Bot"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.respuesta) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "6855d1ff-5054-4232-aa8f-1785488ca3e6",
+      "name": "Responder error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook voz": {
+      "main": [
+        [
+          {
+            "node": "Guardrails voz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardrails voz": {
+      "main": [
+        [
+          {
+            "node": "Acción voz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Acción voz": {
+      "main": [
+        [
+          {
+            "node": "Buscar caso (voz)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crear caso (voz)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar caso (voz)": {
+      "main": [
+        [
+          {
+            "node": "Respuesta consulta voz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respuesta consulta voz": {
+      "main": [
+        [
+          {
+            "node": "Responder consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear caso (voz)": {
+      "main": [
+        [
+          {
+            "node": "Insertar caso (voz)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insertar caso (voz)": {
+      "main": [
+        [
+          {
+            "node": "Respuesta creación voz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respuesta creación voz": {
+      "main": [
+        [
+          {
+            "node": "Responder creación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder creación": {
+      "main": [
+        [
+          {
+            "node": "Entrada para orquestador (voz)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entrada para orquestador (voz)": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar orquestador (voz)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecutar orquestador (voz)": {
+      "main": [
+        [
+          {
+            "node": "Registro de resultado (voz)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registro de resultado (voz)": {
+      "main": [
+        [
+          {
+            "node": "Fila caso (voz)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Filas de costo (voz)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "¿Hay propuesta? (voz)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila caso (voz)": {
+      "main": [
+        [
+          {
+            "node": "Actualizar caso (voz)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filas de costo (voz)": {
+      "main": [
+        [
+          {
+            "node": "Insertar costos (voz)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Hay propuesta? (voz)": {
+      "main": [
+        [
+          {
+            "node": "Telegram: propuesta con botones (voz)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: resultado sin propuesta (voz)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "pinData": {},
+  "meta": {
+    "notas": "Webhook autenticado por encabezado para la herramienta de servidor de ElevenLabs. Revincular 'Voz ElevenLabs (Header Auth)', 'Telegram PapelSur Bot' y tablas. Editar APROBADOR_CHAT_ID.",
+    "generado_por": "n8n/build_workflows.py"
+  }
+}

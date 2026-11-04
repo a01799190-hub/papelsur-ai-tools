@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Contrato de salida de cada agente (s.salidas[A1..A4])",
+  "type": "object",
+  "required": ["caso_id", "agente", "estado", "resultado", "fuentes", "advertencias", "duracion_ms", "ref_consumo"],
+  "properties": {
+    "caso_id": { "type": "string", "pattern": "^PS-\\d{8}-[A-Z0-9]{4}$" },
+    "agente": { "enum": ["A1", "A2", "A3", "A4"] },
+    "estado": { "type": "string", "description": "ok | aclaracion | insuficiencia | invalido | error | aprobado | devuelto" },
+    "resultado": {},
+    "fuentes": { "type": "array", "items": { "type": "string" } },
+    "advertencias": { "type": "array", "items": { "type": "string" } },
+    "duracion_ms": { "type": "integer" },
+    "ref_consumo": { "type": ["string", "null"], "description": "llamada_id en la tabla de costos" }
+  }
+}

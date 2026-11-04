@@ -1,0 +1,5 @@
+[
+  { "id": "REF-1", "descripcion": "Escuela ficticia: hojas y bolígrafos (descuento 8 %)", "lineas": [ { "sku": "PS-HOJ-CAR", "cantidad": 40 }, { "sku": "PS-PLU-AZU", "cantidad": 30 } ], "descuento_pct_esperado": 0.08, "total_esperado": 31140.90 },
+  { "id": "REF-2", "descripcion": "Oficina pequeña: cuadernos y engrapadoras (con envío)", "lineas": [ { "sku": "PS-CUA-PRO", "cantidad": 5 }, { "sku": "PS-GRA-STD", "cantidad": 2 } ], "descuento_pct_esperado": 0, "total_esperado": 849.70 },
+  { "id": "REF-3", "descripcion": "Despacho: hojas oficio y tóner (descuento 5 %, existencia parcial no aplica)", "lineas": [ { "sku": "PS-HOJ-OFI", "cantidad": 6 }, { "sku": "PS-TON-LAS", "cantidad": 2 } ], "descuento_pct_esperado": 0.05, "total_esperado": 7923.38 }
+]
