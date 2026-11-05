@@ -13,7 +13,7 @@ OBLIGATORIOS = ["README.md", "web/index.html", "web/data/panel.json", "web/data/
     "skills/cotizacion-papelsur/SKILL.md", "skills/revision-propuesta/SKILL.md",
     "loops/loop_calidad.md", "loops/loop_seguridad_costo.md", "agentes/contratos/entrada.schema.json",
     "agentes/contratos/salida.schema.json", "n8n/PapelSur_1_telegram.json", "n8n/PapelSur_2_orquestador.json",
-    "n8n/PapelSur_3_voz.json", "costos/tarifas.csv", "tests/pruebas.csv", ".env.example"]
+    "n8n/PapelSur_3_voz.json", "costos/tarifas.csv", "tests/pruebas.csv", "docs/credenciales_ejemplo.md"]
 for f in OBLIGATORIOS:
     if not (RAIZ / f).exists(): falla("Falta archivo obligatorio: " + f)
 
