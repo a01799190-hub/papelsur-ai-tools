@@ -1,0 +1,149 @@
+{
+  "empresa": "PapelSur Distribuidora (empresa ficticia)",
+  "proposito": "Cotizaciones B2B de papelería con 4 agentes y aprobación humana",
+  "datos_ficticios": true,
+  "es_ejemplo": false,
+  "fuente": "Exportación sanitizada de las tablas privadas 'casos' y 'costos' de n8n",
+  "periodo": {
+    "desde": "2026-11-20",
+    "hasta": "2026-11-20"
+  },
+  "actualizado": "2026-11-23T23:03:58Z",
+  "kpis": {
+    "tiempo_ciclo_min": {
+      "valor": 0.98,
+      "unidad": "min",
+      "formula": "Σ(actualizado − creado) de casos completos / casos completos",
+      "denominador": 4
+    },
+    "aprobacion_primera_pct": {
+      "valor": 60.0,
+      "unidad": "%",
+      "formula": "casos con propuesta aprobada por A4 en la versión 1 / casos con propuesta × 100",
+      "denominador": 5
+    },
+    "costo_promedio_usd": {
+      "valor": 0.001718,
+      "unidad": "USD por caso",
+      "formula": "costo variable medido de casos completos / casos completos",
+      "denominador": 4,
+      "costo_fallidos_usd": 0.000728,
+      "fallidos": 6
+    }
+  },
+  "por_estado": {
+    "error": 3,
+    "aprobado": 3,
+    "pendiente_aprobacion": 1,
+    "requiere_aclaracion": 2,
+    "rechazado": 1,
+    "detenido_presupuesto": 1
+  },
+  "costo_por_agente_usd": {
+    "A1": 0.0020705,
+    "A2": 0.0018335,
+    "A3": 0.0036415,
+    "A4": 0.002043
+  },
+  "historial": [
+    {
+      "caso_id": "PS-20261120-4Y8K",
+      "fecha": "2026-11-20 01:04",
+      "canal": "telegram",
+      "estado": "error",
+      "version": 0,
+      "total_mxn": 0.0,
+      "costo_usd": 8.075e-05
+    },
+    {
+      "caso_id": "PS-20261120-79NU",
+      "fecha": "2026-11-20 01:29",
+      "canal": "telegram",
+      "estado": "error",
+      "version": 0,
+      "total_mxn": 0.0,
+      "costo_usd": 8.075e-05
+    },
+    {
+      "caso_id": "PS-20261120-S745",
+      "fecha": "2026-11-20 01:46",
+      "canal": "telegram",
+      "estado": "aprobado",
+      "version": 1,
+      "total_mxn": 31140.9,
+      "costo_usd": 0.0015455
+    },
+    {
+      "caso_id": "PS-20261120-BVZ2",
+      "fecha": "2026-11-20 01:50",
+      "canal": "telegram",
+      "estado": "pendiente_aprobacion",
+      "version": 2,
+      "total_mxn": 849.7,
+      "costo_usd": 0.001989
+    },
+    {
+      "caso_id": "PS-20261120-HPFC",
+      "fecha": "2026-11-20 01:50",
+      "canal": "telegram",
+      "estado": "requiere_aclaracion",
+      "version": 0,
+      "total_mxn": 0.0,
+      "costo_usd": 0.0002935
+    },
+    {
+      "caso_id": "PS-20261120-DWCF",
+      "fecha": "2026-11-20 01:52",
+      "canal": "telegram",
+      "estado": "rechazado",
+      "version": 1,
+      "total_mxn": 7923.38,
+      "costo_usd": 0.001437
+    },
+    {
+      "caso_id": "PS-20261120-W3U6",
+      "fecha": "2026-11-20 01:53",
+      "canal": "telegram",
+      "estado": "requiere_aclaracion",
+      "version": 0,
+      "total_mxn": 0.0,
+      "costo_usd": 0.0001945
+    },
+    {
+      "caso_id": "PS-20261120-EHU4",
+      "fecha": "2026-11-20 01:53",
+      "canal": "telegram",
+      "estado": "aprobado",
+      "version": 2,
+      "total_mxn": 31140.9,
+      "costo_usd": 0.00241925
+    },
+    {
+      "caso_id": "PS-20261120-7LPN",
+      "fecha": "2026-11-20 02:07",
+      "canal": "telegram",
+      "estado": "error",
+      "version": 0,
+      "total_mxn": 0.0,
+      "costo_usd": 7.875e-05
+    },
+    {
+      "caso_id": "PS-20261120-BFKC",
+      "fecha": "2026-11-20 02:11",
+      "canal": "telegram",
+      "estado": "detenido_presupuesto",
+      "version": 0,
+      "total_mxn": 0.0,
+      "costo_usd": 0.0
+    },
+    {
+      "caso_id": "PS-20261120-6WLK",
+      "fecha": "2026-11-20 02:13",
+      "canal": "telegram",
+      "estado": "aprobado",
+      "version": 1,
+      "total_mxn": 1281.8,
+      "costo_usd": 0.0014695
+    }
+  ]
+}
