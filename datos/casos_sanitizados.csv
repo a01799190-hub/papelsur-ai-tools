@@ -1,7 +1,12 @@
 caso_id,fecha,canal,estado,version,total_mxn,costo_usd
-PS-20261103-AB12,2026-11-03 15:02,telegram,aprobado,1,31140.9,0.001605
-PS-20261103-CD34,2026-11-03 15:20,telegram,aprobado,2,31140.9,0.0019175
-PS-20261103-HK7Q,2026-11-03 16:00,telegram,rechazado,1,849.7,0.00154
-PS-20261103-VZ5M,2026-11-03 16:30,voz,aprobado,1,7923.38,0.00161
-PS-20261103-EF56,2026-11-03 17:00,telegram,bloqueado_politica,0,0.0,0.0
-PS-20261103-GH78,2026-11-03 17:10,telegram,requiere_aclaracion,0,0.0,0.0001875
+PS-20261120-4Y8K,2026-11-20 01:04,telegram,error,0,0.0,8.075e-05
+PS-20261120-79NU,2026-11-20 01:29,telegram,error,0,0.0,8.075e-05
+PS-20261120-S745,2026-11-20 01:46,telegram,aprobado,1,31140.9,0.0015455
+PS-20261120-BVZ2,2026-11-20 01:50,telegram,pendiente_aprobacion,2,849.7,0.001989
+PS-20261120-HPFC,2026-11-20 01:50,telegram,requiere_aclaracion,0,0.0,0.0002935
+PS-20261120-DWCF,2026-11-20 01:52,telegram,rechazado,1,7923.38,0.001437
+PS-20261120-W3U6,2026-11-20 01:53,telegram,requiere_aclaracion,0,0.0,0.0001945
+PS-20261120-EHU4,2026-11-20 01:53,telegram,aprobado,2,31140.9,0.00241925
+PS-20261120-7LPN,2026-11-20 02:07,telegram,error,0,0.0,7.875e-05
+PS-20261120-BFKC,2026-11-20 02:11,telegram,detenido_presupuesto,0,0.0,0.0
+PS-20261120-6WLK,2026-11-20 02:13,telegram,aprobado,1,1281.8,0.0014695
