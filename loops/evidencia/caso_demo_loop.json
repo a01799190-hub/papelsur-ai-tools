@@ -1,0 +1,222 @@
+{
+  "descripcion": "Evidencia del loop de calidad (P11): V1 devuelta por A4, V2 corregida y aprobada con el mismo caso_id. Exportado de la tabla privada 'casos' (campo resultado_json); sin usuario, chat ni texto libre.",
+  "caso_id": "PS-20261120-EHU4",
+  "entrada": "#demo-loop (V1 generada sin reglas del skill a propósito)",
+  "estado_final_humano": "aprobado",
+  "creado": "2026-11-20T01:53:32.202Z",
+  "actualizado": "2026-11-20T01:54:04.497Z",
+  "estado": "pendiente_aprobacion",
+  "motivo": "",
+  "propuesta": {
+    "caso_id": "PS-20261120-EHU4",
+    "version": 2,
+    "etiqueta": "RESULTADO SIMULADO",
+    "moneda": "MXN",
+    "lineas": [
+      {
+        "sku": "PS-HOJ-CAR",
+        "descripcion": "Hojas bond carta 75 g, caja con 5000",
+        "cantidad": 40,
+        "precio_unitario": 689,
+        "importe": 27560
+      },
+      {
+        "sku": "PS-PLU-AZU",
+        "descripcion": "Bolígrafo punto mediano azul, paquete con 12",
+        "cantidad": 30,
+        "precio_unitario": 54,
+        "importe": 1620
+      }
+    ],
+    "subtotal": 29180,
+    "descuento_pct": 0.08,
+    "descuento": 2334.4,
+    "envio": 0,
+    "iva": 4295.3,
+    "total": 31140.9,
+    "vigencia_dias": 7,
+    "resumen": "Esta propuesta corresponde a un resultado simulado de PapelSur Distribuidora, empresa ficticia. Se cotizan 40 cajas de hojas bond carta 75 g (5000 unidades por caja) y 30 paquetes de bolígrafos punto mediano azul (12 unidades por paquete). El importe total de la operación, incluyendo el descuento aplicado del 8% y el IVA correspondiente, es de 31,140.90 MXN.",
+    "supuestos": [
+      "La presente cotización tiene una vigencia de 7 días naturales a partir de la fecha de emisión.",
+      "La disponibilidad de los productos está sujeta a existencias en el inventario al momento de confirmar el pedido."
+    ],
+    "condiciones": [
+      "Precios expresados en MXN con IVA desglosado. Envío sin costo al superar los 3,000 MXN de subtotal. Fecha y hora de entrega a confirmar tras la recepción del pedido."
+    ],
+    "fuentes": [
+      "catalogo-2026-11-01",
+      "politica_comercial v1.0"
+    ],
+    "skill": "cotizacion-papelsur v1.1.0"
+  },
+  "historial_versiones": [
+    {
+      "version": 1,
+      "dictamen": "devuelto",
+      "correcciones": [
+        "El resumen debe mencionar explícitamente que se trata de un resultado simulado de una empresa ficticia.",
+        "Los supuestos deben incluir explícitamente la vigencia de la cotización y la sujeción a existencias en inventario, tal como lo requieren las reglas del skill."
+      ],
+      "costo_acumulado_usd": 0.00156975
+    },
+    {
+      "version": 2,
+      "dictamen": "aprobado",
+      "correcciones": [],
+      "costo_acumulado_usd": 0.00241925
+    }
+  ],
+  "traza": [
+    {
+      "ts": "2026-11-20T01:53:32.716Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "ORQ",
+      "estado": "inicio",
+      "resumen": "Plan A1→A2→A3→A4; límite 0.02 USD, 10 llamadas, 3 versiones"
+    },
+    {
+      "ts": "2026-11-20T01:53:32.716Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "ORQ",
+      "estado": "skills",
+      "resumen": "Cargados cotizacion-papelsur v1.1.0 y revision-propuesta v1.0.0; catalogo-2026-11-01"
+    },
+    {
+      "ts": "2026-11-20T01:53:32.736Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "ORQ",
+      "estado": "invoca",
+      "resumen": "A1 (PS-20261120-EHU4-A1-01), estimado 0.000998 USD"
+    },
+    {
+      "ts": "2026-11-20T01:53:33.719Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "A1",
+      "estado": "ok",
+      "resumen": "2 partidas estructuradas"
+    },
+    {
+      "ts": "2026-11-20T01:53:33.732Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "ORQ",
+      "estado": "invoca",
+      "resumen": "A2 (PS-20261120-EHU4-A2-02), estimado 0.001071 USD"
+    },
+    {
+      "ts": "2026-11-20T01:53:34.839Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "A2",
+      "estado": "ok",
+      "resumen": "2 líneas verificadas en catalogo-2026-11-01"
+    },
+    {
+      "ts": "2026-11-20T01:53:34.851Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "A3",
+      "estado": "skill",
+      "resumen": "V1 de demostración sin skill (#demo-loop)"
+    },
+    {
+      "ts": "2026-11-20T01:53:34.851Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "ORQ",
+      "estado": "invoca",
+      "resumen": "A3 (PS-20261120-EHU4-A3-03), estimado 0.001183 USD"
+    },
+    {
+      "ts": "2026-11-20T01:53:36.439Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "A3",
+      "estado": "ok",
+      "resumen": "Propuesta v1 total 31140.9 MXN"
+    },
+    {
+      "ts": "2026-11-20T01:53:36.451Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "A4",
+      "estado": "capa_determinista",
+      "resumen": "Sin fallas automáticas"
+    },
+    {
+      "ts": "2026-11-20T01:53:36.451Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "ORQ",
+      "estado": "invoca",
+      "resumen": "A4 (PS-20261120-EHU4-A4-04), estimado 0.000971 USD"
+    },
+    {
+      "ts": "2026-11-20T01:53:38.551Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "A4",
+      "estado": "devuelto",
+      "resumen": "v1: El resumen debe mencionar explícitamente que se trata de un resultado simulado de una empresa ficticia. | Los supuestos deben incluir explícitamente la vigencia de la cotización y la sujeción a existencias en inventario, tal como lo requieren las reglas del skill."
+    },
+    {
+      "ts": "2026-11-20T01:53:38.551Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "ORQ",
+      "estado": "loop_calidad",
+      "resumen": "Regresa a A3 para versión 2"
+    },
+    {
+      "ts": "2026-11-20T01:53:38.567Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "A3",
+      "estado": "skill",
+      "resumen": "Aplica skill cotizacion-papelsur v1.1.0"
+    },
+    {
+      "ts": "2026-11-20T01:53:38.567Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "ORQ",
+      "estado": "invoca",
+      "resumen": "A3 (PS-20261120-EHU4-A3-05), estimado 0.001252 USD"
+    },
+    {
+      "ts": "2026-11-20T01:53:42.703Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "A3",
+      "estado": "ok",
+      "resumen": "Propuesta v2 total 31140.9 MXN"
+    },
+    {
+      "ts": "2026-11-20T01:53:42.720Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "A4",
+      "estado": "capa_determinista",
+      "resumen": "Sin fallas automáticas"
+    },
+    {
+      "ts": "2026-11-20T01:53:42.720Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "ORQ",
+      "estado": "invoca",
+      "resumen": "A4 (PS-20261120-EHU4-A4-06), estimado 0.000961 USD"
+    },
+    {
+      "ts": "2026-11-20T01:53:44.514Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "A4",
+      "estado": "aprobado",
+      "resumen": "v2"
+    },
+    {
+      "ts": "2026-11-20T01:53:44.514Z",
+      "caso_id": "PS-20261120-EHU4",
+      "agente": "ORQ",
+      "estado": "liberado",
+      "resumen": "Propuesta v2 liberada a aprobación humana"
+    }
+  ],
+  "resumen_costos": {
+    "total_usd": 0.00241925,
+    "llamadas": 6,
+    "por_agente": {
+      "A1": 0.00027375,
+      "A2": 0.0003665,
+      "A3": 0.000986,
+      "A4": 0.000793
+    }
+  },
+  "duracion_ms": 11812
+}
